@@ -44,6 +44,8 @@ def _template_variables(log_template_variables, nested_json):
 def _template_message(nested_json, config, stream_labels):
     template_variables = _template_variables(config.log_template_variables, nested_json)
     print(f"template variables: {template_variables}")
+    print("config.log_template", config.log_template)
+    print("nested_json", nested_json)
     message = Template(config.log_template).substitute(**template_variables)
     return message, stream_labels
 
@@ -54,7 +56,7 @@ def _json_message(nested_json, config, stream_labels):
         message, stream_labels = _template_message(nested_json, config, stream_labels)
     else:
         # If no log template set then just use the entire string as the log message
-        message = str(nested_json)
+        message = json.dumps(nested_json)
     return message
 
 
@@ -76,7 +78,7 @@ def _environment_config():
         os.environ.get("LOKI_ENDPOINT", "http://localhost:3100"), "/loki/api/v1/push"
     )
     config.log_labels = os.environ.get("LOG_LABELS", "").split(",")
-    config.log_template = os.environ.get("LOG_TEMPLATE", "$message")
+    config.log_template = os.environ.get("LOG_TEMPLATE", None)
     config.log_template_variables = os.environ.get(
         "LOG_TEMPLATE_VARIABLES", "message"
     ).split(",")
@@ -132,5 +134,6 @@ def lambda_handler(cloudwatch_event, context):
     print("executing lambda: cloudwatch-loki-shipper")
     config = _environment_config()
     streams = _streams(config, cloudwatch_event)
+    print(streams)
     _loki_push(config, streams)
     print("lambda processing complete")
