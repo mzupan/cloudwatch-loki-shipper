@@ -43,9 +43,6 @@ def _template_variables(log_template_variables, nested_json):
 
 def _template_message(nested_json, config, stream_labels):
     template_variables = _template_variables(config.log_template_variables, nested_json)
-    print(f"template variables: {template_variables}")
-    print("config.log_template", config.log_template)
-    print("nested_json", nested_json)
     message = Template(config.log_template).substitute(**template_variables)
     return message, stream_labels
 
